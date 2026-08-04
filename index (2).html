@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead Intake — Sales Navigator Card Catalog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EEF1E7;
+    --paper-dim:#E4E8DA;
+    --ink:#202B22;
+    --moss:#55695D;
+    --tab:#8A9A7B;
+    --stamp:#C6922A;
+    --stamp-dark:#9C7220;
+    --line:#C9D0BE;
+    --danger:#9B4A3F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Work Sans',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{
+    max-width:1200px;
+    margin:0 auto;
+    padding:36px 28px 80px;
+  }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:16px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  header .title-block{max-width:640px;}
+  h1{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:2.1rem;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:0;
+    color:var(--moss);
+    font-size:0.95rem;
+    line-height:1.5;
+  }
+  .drawer-count{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.8rem;
+    color:var(--moss);
+    text-align:right;
+    white-space:nowrap;
+  }
+  .drawer-count b{
+    font-size:1.6rem;
+    color:var(--ink);
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  /* Dropzone styled as an open card-catalog drawer */
+  .dropzone{
+    border:2px dashed var(--tab);
+    border-radius:4px;
+    background:var(--paper-dim);
+    padding:34px 24px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+    position:relative;
+  }
+  .dropzone.drag{
+    border-color:var(--stamp);
+    background:#E9E2CE;
+  }
+  .dropzone h2{
+    font-family:'Source Serif 4',serif;
+    font-weight:600;
+    font-size:1.15rem;
+    margin:0 0 6px;
+  }
+  .dropzone p{
+    margin:0;
+    color:var(--moss);
+    font-size:0.88rem;
+  }
+  .dropzone input{display:none;}
+  .dz-icon{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--tab);
+    display:inline-block;
+    border:1px solid var(--tab);
+    border-radius:999px;
+    padding:3px 12px;
+    margin-bottom:14px;
+  }
+
+  .toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:26px 0 18px;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .toolbar .status{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.8rem;
+    color:var(--moss);
+  }
+  .btns{display:flex;gap:10px;flex-wrap:wrap;}
+  button.action{
+    font-family:'Work Sans',sans-serif;
+    font-weight:600;
+    font-size:0.85rem;
+    border:none;
+    border-radius:3px;
+    padding:10px 18px;
+    cursor:pointer;
+    transition:transform .1s ease, box-shadow .1s ease;
+  }
+  button.action:active{transform:translateY(1px);}
+  button.primary{
+    background:var(--stamp);
+    color:#241804;
+    box-shadow:2px 2px 0 var(--stamp-dark);
+  }
+  button.primary:hover{background:#D19E38;}
+  button.secondary{
+    background:transparent;
+    color:var(--ink);
+    border:1.5px solid var(--ink);
+  }
+  button.secondary:hover{background:var(--ink);color:var(--paper);}
+  button.action:disabled{opacity:0.4;cursor:not-allowed;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:20px;
+  }
+
+  .card{
+    position:relative;
+    background:#F7F8F1;
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:20px 18px 16px;
+    box-shadow:3px 4px 0 rgba(32,43,34,0.08);
+    overflow:hidden;
+  }
+  .card .tab{
+    position:absolute;
+    top:0; left:18px;
+    background:var(--tab);
+    color:#F7F8F1;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.68rem;
+    letter-spacing:0.08em;
+    padding:3px 10px 4px;
+    border-radius:0 0 4px 4px;
+  }
+  .card .punch{
+    position:absolute;
+    top:14px; right:14px;
+    width:12px;height:12px;
+    border-radius:50%;
+    background:var(--paper);
+    border:1.5px solid var(--line);
+  }
+  .card .field-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.65rem;
+    text-transform:uppercase;
+    letter-spacing:0.09em;
+    color:var(--tab);
+    margin:14px 0 2px;
+  }
+  .card .field-label:first-of-type{margin-top:20px;}
+  .card [contenteditable]{
+    outline:none;
+    border-bottom:1px dotted transparent;
+    line-height:1.35;
+    word-break:break-word;
+  }
+  .card [contenteditable]:hover,
+  .card [contenteditable]:focus{
+    border-bottom:1px dotted var(--moss);
+    background:rgba(198,146,42,0.08);
+  }
+  .card .name-field{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:1.25rem;
+    margin-top:22px;
+  }
+  .card .title-field{
+    font-size:0.92rem;
+    color:var(--ink);
+  }
+  .card .company-field{
+    font-size:0.88rem;
+    color:var(--moss);
+    font-weight:500;
+  }
+  .card .mono-field{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.78rem;
+    color:var(--ink);
+  }
+  .card .url-field{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.72rem;
+    color:var(--moss);
+  }
+  .card .search-link{
+    color:var(--stamp-dark);
+    font-weight:600;
+    text-decoration:none;
+    border-bottom:1px dotted var(--stamp-dark);
+  }
+  .card .search-link:hover{color:var(--danger);}
+  .card .search-hint{margin-top:4px;}
+  .card .field-label .hint{
+    text-transform:none;
+    letter-spacing:0;
+    color:var(--tab);
+    font-weight:400;
+  }
+  .card .waiting{
+    color:var(--tab);
+    font-style:italic;
+  }
+  .card .url-input{
+    width:100%;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.76rem;
+    color:var(--ink);
+    background:#F2F3EC;
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:6px 8px;
+    outline:none;
+  }
+  .card .url-input:focus{
+    border-color:var(--stamp);
+    background:#fff;
+  }
+  .card .domain-field.resolving{
+    color:var(--tab);
+    font-style:italic;
+  }
+  .card .raw-toggle{
+    display:block;
+    margin-top:12px;
+    background:none;
+    border:none;
+    padding:0;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.66rem;
+    color:var(--moss);
+    text-decoration:underline dotted;
+    cursor:pointer;
+  }
+  .card .raw-toggle:hover{color:var(--ink);}
+  .card .raw-text{
+    margin-top:8px;
+    max-height:160px;
+    overflow-y:auto;
+    background:#232F26;
+    color:#D9E0D2;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.68rem;
+    line-height:1.5;
+    white-space:pre-wrap;
+    padding:8px;
+    border-radius:2px;
+  }
+  .card .guess-list{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.72rem;
+    color:var(--moss);
+    line-height:1.6;
+  }
+  .card .thumb{
+    width:100%;
+    height:110px;
+    object-fit:cover;
+    border-radius:2px;
+    filter:grayscale(0.15);
+    margin-bottom:4px;
+    border:1px solid var(--line);
+  }
+  .card .remove-btn{
+    position:absolute;
+    bottom:10px; right:12px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.68rem;
+    color:var(--danger);
+    background:none;
+    border:none;
+    cursor:pointer;
+    letter-spacing:0.06em;
+  }
+  .card .remove-btn:hover{text-decoration:underline;}
+
+  .card .progress-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:20px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.72rem;
+    color:var(--moss);
+  }
+  .spinner{
+    width:12px;height:12px;
+    border:2px solid var(--line);
+    border-top-color:var(--stamp);
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    flex-shrink:0;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .stamp-mark{
+    position:absolute;
+    top:38%;
+    left:50%;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:1.1rem;
+    letter-spacing:0.12em;
+    color:var(--danger);
+    border:3px solid var(--danger);
+    border-radius:4px;
+    padding:4px 14px;
+    transform:translate(-50%,-50%) rotate(-9deg) scale(1.4);
+    opacity:0;
+    pointer-events:none;
+    animation:stampIn .5s ease-out forwards;
+    animation-delay:.05s;
+    mix-blend-mode:multiply;
+  }
+  @keyframes stampIn{
+    0%{opacity:0; transform:translate(-50%,-50%) rotate(-9deg) scale(2.2);}
+    60%{opacity:0.85; transform:translate(-50%,-50%) rotate(-9deg) scale(0.95);}
+    100%{opacity:0.55; transform:translate(-50%,-50%) rotate(-9deg) scale(1);}
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:50px 20px;
+    color:var(--moss);
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.85rem;
+  }
+
+  footer{
+    margin-top:40px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.7rem;
+    color:var(--moss);
+    line-height:1.6;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .spinner, .stamp-mark{animation:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="title-block">
+      <h1>Lead Intake Desk</h1>
+      <p>Drop Sales Navigator screenshots in the tray. Each one gets read, filed as a card, and can be pulled into a CSV. A screenshot with several leads stacked in it (like a search-results list) gets split into one card per person.</p>
+    </div>
+    <div class="drawer-count">
+      FILED<br><b id="countNum">0</b>
+    </div>
+  </header>
+
+  <label class="dropzone" id="dropzone">
+    <span class="dz-icon">Card Catalog · Intake Tray</span>
+    <h2>Drop screenshots here, or click to browse</h2>
+    <p>PNG / JPG — one screenshot per profile, or a list view with several leads stacked in it. Processing happens in your browser; nothing is uploaded anywhere.</p>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+  </label>
+
+  <div class="toolbar">
+    <div class="status" id="statusLine">Tray empty.</div>
+    <div class="btns">
+      <button class="action secondary" id="clearBtn" disabled>Clear all</button>
+      <button class="action primary" id="exportBtn" disabled>Export CSV</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="emptyState">No cards filed yet — the drawer is empty.</div>
+
+  <footer>
+    NOTE — Name, job title, and company are read from each screenshot automatically. Company domain and
+    email guesses are resolved once you paste that person's LinkedIn URL into a card (domain lookup is
+    keyed off the extracted company name, not the LinkedIn page itself — LinkedIn's login wall blocks a
+    browser-side app from reading it directly). Email guesses are pattern-generated (first.last@domain,
+    etc.) and are NOT verified — confirm with a checker before outreach.
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+<script>
+(function(){
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const grid = document.getElementById('grid');
+  const emptyState = document.getElementById('emptyState');
+  const statusLine = document.getElementById('statusLine');
+  const countNum = document.getElementById('countNum');
+  const clearBtn = document.getElementById('clearBtn');
+  const exportBtn = document.getElementById('exportBtn');
+
+  let leads = [];   // { id, data:{...}, thumbUrl }
+  let leadCounter = 0;
+  let queueLength = 0;
+  let processedCount = 0;
+  let isProcessing = false;
+
+  // A name line looks like "Antonio C. · 1st · Viewed" — the degree marker
+  // (1st/2nd/3rd/4th) is the reliable anchor. OCR sometimes drops the
+  // leading digit on lower-res screenshots (misread as "Ist" or bare "st"),
+  // so both are accepted — the \b boundary keeps this from matching inside
+  // real words like "List" or "States".
+  const DEGREE_RE = /\b(1st|ist|2nd|3rd|4th|st)\b/i;
+  const ABOUT_RE = /^about\b/i;
+  const SHOWMORE_RE = /show more/i;
+  const NOISE_RE = /(connection|^message$|^save$|view profile|sales navigator|inmail|shared group|recent post|premium|^following$|^follow\b|^\d+$)/i;
+  const TENURE_RE = /\bin (role|company)\b/i;
+  const LOCATION_RE = /\b(area|region|metropolitan|greater|united states)\b|,\s*[A-Z]{2}$/i;
+  const URL_RE = /https?:\/\/(www\.)?linkedin\.com\/[^\s)]+/i;
+  const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
+  // Separators LinkedIn/Sales Navigator use between title and company.
+  // The middle dot is the real one; dash/pipe variants cover cases where
+  // OCR misreads that dot.
+  const TITLE_COMPANY_SEPARATORS = [' · ', ' • ', ' - ', ' – ', ' — ', ' | ', ' at ', ' @ '];
+
+  function updateStatus(text){ statusLine.textContent = text; }
+  function updateCount(){
+    countNum.textContent = leads.length;
+    emptyState.style.display = leads.length ? 'none' : 'block';
+    clearBtn.disabled = leads.length === 0 || isProcessing;
+    exportBtn.disabled = leads.length === 0 || isProcessing;
+    exportBtn.textContent = isProcessing ? 'Reading screenshots…' : 'Export CSV';
+  }
+
+  function ocrTextToLines(raw){
+    return raw.split('\n').map(l => l.trim()).filter(Boolean);
+  }
+
+  function extractNameFromLine(line){
+    const m = line.match(DEGREE_RE);
+    if (!m) return '';
+    return line.slice(0, m.index).replace(/[\s·•\-–—|.'’‘"]+$/,'').trim();
+  }
+
+  function splitTitleCompany(line){
+    const lower = line.toLowerCase();
+    for (const sep of TITLE_COMPANY_SEPARATORS){
+      const idx = lower.lastIndexOf(sep);
+      if (idx !== -1){
+        return {
+          title: line.slice(0, idx).trim(),
+          company: line.slice(idx + sep.length).trim()
+        };
+      }
+    }
+    return null;
+  }
+
+  // The small "viewed"/status icon that sits right after the degree marker
+  // on the name line sometimes gets OCR'd as garbage and glued onto the
+  // FRONT of the following line instead — e.g. "O & Head of Demand..." or
+  // "O0 Limited Partner..." (multiple junk symbols stuck together), or,
+  // less often, onto the front of the name itself ("yr Loreta Tarozaite").
+  // Real words never start this way, so it's safe to strip the whole run.
+  function stripLeadingOcrJunk(str){
+    if (!str) return str;
+    let cleaned = str;
+    let changed = true;
+    let guard = 0;
+    while (changed && guard < 4){
+      changed = false;
+      guard++;
+      const symbolMatch = cleaned.match(/^[O0°©®*&@~]+\s+(?=\S)/);
+      if (symbolMatch){
+        cleaned = cleaned.slice(symbolMatch[0].length);
+        changed = true;
+        continue;
+      }
+      const lowerJunk = cleaned.match(/^[a-z]{1,3}\s+(?=[A-Z])/);
+      if (lowerJunk){
+        cleaned = cleaned.slice(lowerJunk[0].length);
+        changed = true;
+      }
+    }
+    return cleaned.trim();
+  }
+
+  // Screenshots that include the right-side action panel (List count, Save
+  // button, message icon) sometimes bleed a stray character onto the FRONT
+  // of the title line — e.g. "J VP of Marketing" — where a real job title
+  // never starts with an isolated single letter/digit token.
+  function stripTitleJunk(title){
+    let cleaned = stripLeadingOcrJunk(title);
+    const singleTokenMatch = cleaned.match(/^[A-Z0-9]\s+(?=[A-Z])/);
+    if (singleTokenMatch) cleaned = cleaned.slice(singleTokenMatch[0].length);
+    return cleaned.trim();
+  }
+
+  // Same right-side panel can bleed onto the END of the company name —
+  // e.g. "Fuel50 List ()" or "Ingrid @ C)" — as list-count badges, save
+  // state, or stray icon glyphs.
+  function stripCompanyJunk(company){
+    if (!company) return company;
+    let cleaned = company;
+    const symbolCut = cleaned.match(/\s*[@=()].*$/);
+    if (symbolCut) cleaned = cleaned.slice(0, symbolCut.index);
+    cleaned = cleaned.replace(/\s+\d*\s*(list|lists|saved?|recently hired)\b.*$/i, '');
+    cleaned = cleaned.replace(/\s+[A-Z]$/, '');
+    return cleaned.trim();
+  }
+
+  // Break the full OCR line list into one block per lead, anchored on each
+  // name line (the one carrying the 1st/2nd/3rd degree marker). Handles
+  // both a single profile screenshot and a multi-lead search-results list.
+  function splitIntoRecords(lines){
+    const nameIndices = [];
+    lines.forEach((line, i) => { if (DEGREE_RE.test(line)) nameIndices.push(i); });
+    if (!nameIndices.length) return [lines];
+    return nameIndices.map((start, k) => {
+      const end = k + 1 < nameIndices.length ? nameIndices[k + 1] : lines.length;
+      return lines.slice(start, end);
+    });
+  }
+
+  function parseRecord(lines){
+    const name = stripLeadingOcrJunk(extractNameFromLine(lines[0] || ''));
+    let title = '', company = '';
+
+    for (let i = 1; i < lines.length; i++){
+      const line = lines[i];
+      if (!line || NOISE_RE.test(line) || TENURE_RE.test(line)) continue;
+      if (ABOUT_RE.test(line) || SHOWMORE_RE.test(line)) continue;
+
+      const split = splitTitleCompany(line);
+      if (split && split.title && split.company){
+        title = stripTitleJunk(split.title);
+        company = stripCompanyJunk(split.company);
+        break;
+      }
+      if (!title && !LOCATION_RE.test(line)){
+        title = stripTitleJunk(line); // last-resort fallback, only for genuinely unmatched lines
+      }
+    }
+
+    const rawText = lines.join('\n');
+    const urlMatch = rawText.match(URL_RE);
+    const profileUrl = urlMatch ? urlMatch[0] : '';
+    const directEmailMatch = rawText.match(EMAIL_RE);
+    const directEmail = directEmailMatch ? directEmailMatch[0] : '';
+
+    return { name, title, company, profileUrl, directEmail, rawText };
+  }
+
+  function heuristicDomain(company){
+    if (!company) return '';
+    return company.toLowerCase()
+      .replace(/[^a-z0-9 ]/g,'')
+      .replace(/\b(inc|llc|ltd|corp|corporation|co|company|group)\b/g,'')
+      .trim()
+      .split(/\s+/).join('') + '.com';
+  }
+
+  async function lookupDomain(company){
+    if (!company) return '';
+    try{
+      const resp = await fetch('https://autocomplete.clearbit.com/v1/companies/suggest?query=' + encodeURIComponent(company));
+      if (!resp.ok) throw new Error('bad response');
+      const results = await resp.json();
+      if (results && results.length && results[0].domain) return results[0].domain;
+    }catch(e){ /* fall through to heuristic */ }
+    return heuristicDomain(company);
+  }
+
+  function guessEmails(name, domain){
+    if (!name || !domain) return [];
+    const parts = name.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!parts.length) return [];
+    if (parts.length === 1) return [`${parts[0]}@${domain}`];
+    const first = parts[0], last = parts[parts.length-1];
+    const candidates = [
+      `${first}.${last}@${domain}`,
+      `${first}${last}@${domain}`,
+      `${first}@${domain}`,
+      `${first[0]}${last}@${domain}`,
+      `${first}_${last}@${domain}`,
+      `${last}.${first}@${domain}`
+    ];
+    return [...new Set(candidates)];
+  }
+
+  function slugHintFromUrl(url){
+    // If the URL (or its company page, if pasted) contains /company/some-name/,
+    // use that as a fallback hint when OCR didn't catch a company name.
+    const m = url.match(/linkedin\.com\/company\/([^\/?]+)/i);
+    if (!m) return '';
+    return decodeURIComponent(m[1]).replace(/-/g,' ').trim();
+  }
+
+  function fieldRow(labelText, valueText, extraClass){
+    return `<div class="field-label">${labelText}</div><div class="${extraClass}" contenteditable="true">${valueText || '—'}</div>`;
+  }
+
+  function renderCard(lead){
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.dataset.id = lead.id;
+    el.innerHTML = `
+      <div class="tab">#${String(lead.id).padStart(3,'0')}</div>
+      <div class="punch"></div>
+      ${lead.thumbUrl ? `<img class="thumb" src="${lead.thumbUrl}" alt="">` : ''}
+      <div class="progress-row"><div class="spinner"></div><span>reading card…</span></div>
+    `;
+    grid.prepend(el);
+    return el;
+  }
+
+  function fillCard(el, lead){
+    const d = lead.data;
+    el.innerHTML = `
+      <div class="tab">#${String(lead.id).padStart(3,'0')}</div>
+      <div class="punch"></div>
+      ${lead.thumbUrl ? `<img class="thumb" src="${lead.thumbUrl}" alt="">` : ''}
+      <div class="stamp-mark">FILED</div>
+      ${fieldRow('Name', d.name, 'name-field')}
+      ${fieldRow('Title', d.title, 'title-field')}
+      ${fieldRow('Company', d.company, 'company-field')}
+      <div class="field-label">Domain</div>
+      <div class="mono-field domain-field">${
+        d.domain ? d.domain : '<span class="waiting">— add LinkedIn URL below —</span>'
+      }</div>
+      <div class="field-label">LinkedIn URL <span class="hint">(paste it in)</span></div>
+      <input class="url-input" type="text" placeholder="https://www.linkedin.com/in/…" value="${d.profileUrl || ''}">
+      ${!d.profileUrl ? `<div class="search-hint"><a class="search-link" href="${d.searchUrl}" target="_blank" rel="noopener">search for their profile →</a></div>` : ''}
+      <div class="field-label">${d.directEmail ? 'Email (found in screenshot)' : 'Email guesses (unverified)'}</div>
+      <div class="${d.directEmail ? 'mono-field' : 'guess-list'} email-field">${
+        d.directEmail ? d.directEmail
+        : (d.emailGuesses.length ? d.emailGuesses.join('<br>') : '<span class="waiting">— resolves once domain is found —</span>')
+      }</div>
+      <button class="remove-btn" data-remove="${lead.id}">REMOVE ✕</button>
+      <button class="raw-toggle" data-raw-toggle="${lead.id}">show raw OCR text</button>
+      <div class="raw-text" id="raw-${lead.id}" hidden>${escapeHtml(d.rawText || '')}</div>
+    `;
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  grid.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-remove]');
+    if (!btn) return;
+    const id = Number(btn.dataset.remove);
+    leads = leads.filter(l => l.id !== id);
+    btn.closest('.card').remove();
+    updateCount();
+  });
+
+  grid.addEventListener('click', (e) => {
+    const toggle = e.target.closest('[data-raw-toggle]');
+    if (!toggle) return;
+    const id = toggle.dataset.rawToggle;
+    const panel = document.getElementById('raw-' + id);
+    if (!panel) return;
+    panel.hidden = !panel.hidden;
+    toggle.textContent = panel.hidden ? 'show raw OCR text' : 'hide raw OCR text';
+  });
+
+  grid.addEventListener('focusout', (e) => {
+    if (!e.target.classList.contains('url-input')) return;
+    const cardEl = e.target.closest('.card');
+    const id = Number(cardEl.dataset.id);
+    const url = e.target.value.trim();
+    resolveDomainForLead(id, url, cardEl);
+  });
+
+  async function resolveDomainForLead(id, url, cardEl){
+    const lead = leads.find(l => l.id === id);
+    if (!lead) return;
+    lead.data.profileUrl = url;
+
+    const domainField = cardEl.querySelector('.domain-field');
+    const emailField = cardEl.querySelector('.email-field');
+
+    if (!url){
+      lead.data.domain = '';
+      lead.data.emailGuesses = [];
+      if (domainField) domainField.innerHTML = '<span class="waiting">— add LinkedIn URL below —</span>';
+      if (emailField && !lead.data.directEmail) emailField.innerHTML = '<span class="waiting">— resolves once domain is found —</span>';
+      return;
+    }
+
+    const hint = lead.data.company || slugHintFromUrl(url);
+    if (domainField){
+      domainField.classList.add('resolving');
+      domainField.textContent = 'resolving…';
+    }
+
+    const domain = await lookupDomain(hint);
+    lead.data.domain = domain;
+    lead.data.emailGuesses = (domain && !lead.data.directEmail) ? guessEmails(lead.data.name, domain) : [];
+
+    if (domainField){
+      domainField.classList.remove('resolving');
+      domainField.innerHTML = domain ? domain : '<span class="waiting">— couldn\'t resolve, edit manually —</span>';
+      domainField.setAttribute('contenteditable','true');
+    }
+    if (emailField && !lead.data.directEmail){
+      emailField.innerHTML = lead.data.emailGuesses.length
+        ? lead.data.emailGuesses.join('<br>')
+        : '<span class="waiting">— no domain found —</span>';
+    }
+  }
+
+  async function upscaleImage(file, minWidth){
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = URL.createObjectURL(file);
+    });
+    const scale = Math.max(1, minWidth / img.width);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas;
+  }
+
+  async function processFile(file){
+    leadCounter += 1;
+    const placeholderId = leadCounter;
+    const thumbUrl = URL.createObjectURL(file);
+    const placeholderCardEl = renderCard({ id: placeholderId, thumbUrl });
+
+    try{
+      updateStatus(`Reading ${file.name}… (${processedCount+1}/${queueLength})`);
+      const ocrInput = await upscaleImage(file, 1600);
+      const { data:{ text } } = await Tesseract.recognize(ocrInput, 'eng', {
+        // PSM 4 = "assume a single column of text of variable sizes" —
+        // reads compact, stacked UI text (name/title/company/location) far
+        // more reliably than the fully-automatic default mode.
+        tessedit_pageseg_mode: '4'
+      });
+
+      const lines = ocrTextToLines(text);
+      const records = splitIntoRecords(lines);
+
+      records.forEach((recordLines, idx) => {
+        const parsed = parseRecord(recordLines);
+        if (!parsed.name){
+          // Skip blocks with no detectable name line rather than filing a
+          // blank card.
+          return;
+        }
+        const searchUrl = parsed.profileUrl ? '' :
+          'https://www.google.com/search?q=' + encodeURIComponent(`site:linkedin.com/in "${parsed.name}" "${parsed.company}"`);
+
+        const lead = {
+          id: idx === 0 ? placeholderId : (leadCounter += 1),
+          thumbUrl,
+          data: {
+            name: parsed.name, title: parsed.title, company: parsed.company,
+            profileUrl: parsed.profileUrl, domain: '', directEmail: parsed.directEmail,
+            emailGuesses: [], searchUrl, rawText: parsed.rawText
+          }
+        };
+        leads.push(lead);
+
+        const cardEl = idx === 0 ? placeholderCardEl : renderCard({ id: lead.id, thumbUrl });
+        fillCard(cardEl, lead);
+      });
+    }catch(err){
+      placeholderCardEl.innerHTML = `
+        <div class="tab">#${String(placeholderId).padStart(3,'0')}</div>
+        <div class="punch"></div>
+        <div class="field-label">Error</div>
+        <div class="mono-field">Couldn't read this image (${(err && err.message) || 'unknown error'}).</div>
+        <button class="remove-btn" data-remove="${placeholderId}">REMOVE ✕</button>
+      `;
+    }finally{
+      processedCount += 1;
+      updateCount();
+      if (processedCount >= queueLength){
+        updateStatus(`Done — ${leads.length} card(s) filed from ${queueLength} screenshot(s).`);
+      }
+    }
+  }
+
+  async function handleFiles(fileList){
+    const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if (!files.length) return;
+    queueLength += files.length;
+    isProcessing = true;
+    updateCount();
+    for (const file of files){
+      await processFile(file);
+    }
+    isProcessing = false;
+    updateCount();
+  }
+
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('drag');
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+  clearBtn.addEventListener('click', () => {
+    leads = [];
+    processedCount = 0;
+    queueLength = 0;
+    grid.innerHTML = '';
+    updateStatus('Tray empty.');
+    updateCount();
+  });
+
+  function cardFieldText(cardEl, selector){
+    const el = cardEl.querySelector(selector);
+    if (!el) return '';
+    if (el.querySelector('.waiting') || el.classList.contains('resolving')) return '';
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+    const txt = clone.textContent.trim();
+    return txt === '—' ? '' : txt;
+  }
+
+  function splitName(fullName){
+    const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return { first: '', last: '' };
+    if (parts.length === 1) return { first: parts[0], last: '' };
+    return { first: parts[0], last: parts.slice(1).join(' ') };
+  }
+
+  function readCard(cardEl){
+    const urlInput = cardEl.querySelector('.url-input');
+    const url = urlInput ? urlInput.value.trim() : '';
+    return {
+      name: cardFieldText(cardEl, '.name-field'),
+      title: cardFieldText(cardEl, '.title-field'),
+      company: cardFieldText(cardEl, '.company-field'),
+      domain: cardFieldText(cardEl, '.domain-field'),
+      url,
+      email: cardFieldText(cardEl, '.email-field')
+    };
+  }
+
+  exportBtn.addEventListener('click', () => {
+    const headers = ['First Name','Last Name','Job Title','Company','Company Domain','Profile URL','Email'];
+    const cardEls = Array.from(grid.querySelectorAll('.card')).filter(el => el.querySelector('.name-field'));
+    const rows = cardEls.map(cardEl => {
+      const d = readCard(cardEl);
+      const { first, last } = splitName(d.name);
+      return [first, last, d.title, d.company, d.domain, d.url, d.email]
+        .map(v => `"${String(v || '').replace(/"/g,'""')}"`).join(',');
+    });
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'leads.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  updateCount();
+})();
+</script>
+</body>
+</html>
